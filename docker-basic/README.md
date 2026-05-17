@@ -30,3 +30,11 @@ docker build -t python-version-test .
 ```bash
 docker run python-version-test
 ```
+
+### nginx 실행
+```bash
+docker run -d -p 8080:80 nginx
+```
+- `docker run` : 컨테이너 실행
+- `-d` : 백그라운드 실행 (detached) (터미널 안 잡고 계속 실행)
+- `-p 8080:80` : 내 pc 8080 포트 -> 컨테이너 내부 80 포트 연결

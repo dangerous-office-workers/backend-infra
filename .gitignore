@@ -5,3 +5,4 @@ __pycache__/
 env/
 target/
 build/
+.DS_Store/
