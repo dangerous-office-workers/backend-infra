@@ -15,7 +15,8 @@ Docker의 기본 개념과 명령어를 연습하는 디렉토리
 - `docker rm 컨테이너ID` : 컨테이너 삭제
 - `docker rmi 이미지명` : 이미지 삭제
 
-## Dockerfile
+## 1. Python 버전 출력 컨테이너
+### Dockerfile
 ```dockerfile
 FROM python:3.11
 
@@ -33,7 +34,9 @@ docker build -t python-version-test .
 ```bash
 docker run python-version-test
 ```
+---
 
+## 2. nginx 컨테이너 실행
 ### nginx 실행
 ```bash
 docker run -d -p 8080:80 nginx
@@ -41,16 +44,19 @@ docker run -d -p 8080:80 nginx
 - `docker run` : 컨테이너 실행
 - `-d` : 백그라운드 실행 (detached) (터미널 안 잡고 계속 실행)
 - `-p 8080:80` : 내 pc 8080 포트 -> 컨테이너 내부 80 포트 연결
+- 브라우저 접속 : http://localhost:8080
+---
 
-### 컨테이너 내부 진입
+## 3. 컨테이너 내부 접속
 ```bash
 docker exec -it 컨테이너ID
 ```
 - `docker exec` : 실행 중인 컨테이너 안에서 명령 실행
 - `-it` : 컨테이너 안에서 직접 명령 입력 가능하게 만드는 옵션
 - `bash` : 컨테이너 내부 쉘 실행(리눅스 터미널 들어가는 느낌)
+---
 
-### 환경변수(`-e`)
+## 4. 환경변수 전달(`-e`)
 ```bash
 docker run --rm -e MY_NAME=bblackbean python:3.11 env
 ```
@@ -58,3 +64,27 @@ docker run --rm -e MY_NAME=bblackbean python:3.11 env
 - `MY_NAME=bblackbean` : 이 값을 컨테이너 안에 전달
 - `env` : 현재 환경변수 출력 명령
 - `--rm` : 컨테이너 종료 후 자동 삭제
+---
+
+## 5. Volume 연결
+### volume-test 폴더 생성
+```bash
+mkdir volume-test
+echo "hello docker volume" > volume-test/test.txt
+```
+
+### nginx 컨테이너 실행
+```bash
+# docker run [옵션들] 이미지명
+docker run -d -p 8080:80 -v $(pwd)/volume-test:/usr/share/nginx/html nginx
+```
+- `-v` : 볼륨(volume) 연결
+- `$(pwd)/volume-test` : 호스트(OS) 쪽 실제 폴더(현재 폴더)
+- `usr/share/nginx/html` : 컨테이너 내부 nginx 기본 웹 폴더
+- 내 로컬 폴더 내용을 컨테이너 내부 웹 폴더에 연결
+
+### 정리
+- 확인 : 브라우저 접속 (http://localhost:8080/test.txt)
+- 호스트 폴더와 컨테이너 폴더 연결 가능
+- 컨테이너가 삭제되어도 파일 유지 가능
+- 업로드 파일 / DB 데이터 / 로그 저장 등에 사용
