@@ -88,3 +88,43 @@ docker run -d -p 8080:80 -v $(pwd)/volume-test:/usr/share/nginx/html nginx
 - 호스트 폴더와 컨테이너 폴더 연결 가능
 - 컨테이너가 삭제되어도 파일 유지 가능
 - 업로드 파일 / DB 데이터 / 로그 저장 등에 사용
+---
+
+## 6. Custom nginx 이미지 만들기
+### 디렉토리 구조
+```text
+custom-nginx
+ ├─ Dockerfile
+ └─ index.html
+```
+
+### index.html
+```html
+<h1>Hello Docker</h1>
+```
+
+### Dockerfile
+```dockerfile
+FROM nginx
+COPY index.html /usr/share/nginx/html/index.html
+```
+
+### 이미지 빌드
+```bash
+docker build -t my-nginx .
+```
+
+### 컨테이너 실행
+```bash
+docker run -d -p 8080:80 my-nginx
+```
+
+### 브라우저 확인
+```text
+http://localhost:8080
+```
+
+### 정리
+- Dockerfile로 커스텀 이미지 생성 가능
+- COPY로 내 파일을 이미지 내부에 포함 가능
+- Docker는 실행 환경 + 내 코드를 함께 패키징 가능
