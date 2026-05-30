@@ -1,0 +1,5 @@
+services: # 실행할 컨테이너 목록
+  nginx:  # 서비스 이름
+    image: nginx  # nginx 이미지 사용
+    ports:  # 포트 연결
+      - "8080:80"
