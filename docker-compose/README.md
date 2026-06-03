@@ -34,3 +34,20 @@ docker compose down
 - services 아래에 실행할 컨테이너들을 정의한다.
 - `docker compose up -d`는 설정 파일을 기준으로 컨테이너를 실행한다.
 - `docker compose down`는 Compose로 실행한 컨테이너를 정리한다.
+
+# 2. Docker Compose 다중 컨테이너 실행
+## compose.yaml
+```yaml
+services: # 실행할 컨테이너 목록
+  nginx:  # 서비스 이름
+    image: nginx  # nginx 이미지 사용
+    ports:  # 포트 연결
+      - "8080:80"
+
+  redis:
+    image: redis
+```
+- 실행 : `docker compose up -d`
+- 확인 : `docker ps`
+- Redis 로그 확인 : `docker logs <redis-container>`
+- 종료 : `docker compose down`
