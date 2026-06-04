@@ -1,7 +1,7 @@
 # docker-compose
 Docker Compose 기초 실습 디렉토리.
 
-# 1. nginx Compose 실행
+## 1. nginx Compose 실행
 ## compose.yaml
 ```yaml
 services: # 실행할 컨테이너 목록
@@ -34,8 +34,9 @@ docker compose down
 - services 아래에 실행할 컨테이너들을 정의한다.
 - `docker compose up -d`는 설정 파일을 기준으로 컨테이너를 실행한다.
 - `docker compose down`는 Compose로 실행한 컨테이너를 정리한다.
+---
 
-# 2. Docker Compose 다중 컨테이너 실행
+## 2. Docker Compose 다중 컨테이너 실행
 ## compose.yaml
 ```yaml
 services: # 실행할 컨테이너 목록
@@ -51,3 +52,23 @@ services: # 실행할 컨테이너 목록
 - 확인 : `docker ps`
 - Redis 로그 확인 : `docker logs <redis-container>`
 - 종료 : `docker compose down`
+---
+
+## 3. Compose와 실제 애플리케이션
+Compose는 nginx, redis 같은 공식 이미지만 실행하는 것이 아니라 실제 애플리케이션과 함께 사용할 수 있다.
+```yaml
+services:
+  app:
+    image: my-fastapi
+	ports:
+	  - "8000:8000"
+	
+  redis:
+    image: redis
+```
+이 경우 FastAPI 애플리케이션과 Redis를 한 번에 실행할 수 있다.
+
+### 정리
+- Compose는 여러 컨테이너를 하나의 프로젝트처럼 관리한다.
+- 실제 운영 환경에서는 애플리케이션 + Redis + DB를 함께 실행하는 경우가 많다.
+- Compose는 Kubernetes를 이해하기 위한 좋은 중간 단계이다.
