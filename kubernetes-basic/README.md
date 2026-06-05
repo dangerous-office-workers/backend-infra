@@ -85,3 +85,25 @@ Docker에서는 Container가 실행 단위였지만, Kubernetes에서는 Pod가 
 - Pod는 컨테이너를 담는 실행 단위이다.
 - Deployment는 Pod를 관리하는 관리자 역할을 한다.
 - 실무에서는 Pod보다 Deployment를 더 자주 다룬다.
+---
+
+## 6. Service
+- Service는 Pod의 고정 진입점 역할을 한다.
+- Pod는 재생성되면 IP가 변경될 수 있다.
+- Service는 사용자가 Pod의 IP를 직접 알지 않아도 되도록 대표 주소를 제공한다.
+```text
+사용자
+    ↓
+Service
+    ↓
+Pod
+```
+### Service의 역할
+- 고정 주소 제공
+- 로드밸런싱
+- Pod 연결 관리
+
+### 정리
+- Pod IP는 변경될 수 있다.
+- Service는 Pod 앞단의 대표 진입점이다.
+- 사용자는 Service를 통해 애플리케이션에 접근한다.
