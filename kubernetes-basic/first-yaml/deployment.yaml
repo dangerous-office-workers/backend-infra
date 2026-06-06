@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment  # Deployment를 만든다.
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 2   # Pod 2개 유지
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
+          ports:
+            - containerPort: 80
+
+# nginx Pod 2개를 유지하는 Deployment 설정

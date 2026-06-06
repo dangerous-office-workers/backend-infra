@@ -1,6 +1,5 @@
 # kubernetes-basic
-Kubernetes 기초 학습 디렉토리
-
+### Kubernetes 기초 학습 디렉토리
 - Kubernetes가 왜 등장했는지 이해
 - Pod, Deployment, Service 개념 이해
 - Docker와 Kubernetes의 차이 이해
@@ -24,14 +23,14 @@ docker run nginx
 ```text
 Container
 ```
-Docker는 컨테이너를 실행한다.
+- Docker는 컨테이너를 실행한다.
 
 ### Kubernetes
 ```text
 Pod
  └─ Container
 ```
-Kubernetes는 Pod를 실행한다.
+- Kubernetes는 Pod를 실행한다.
 ---
 
 ## 3. Pod
@@ -77,9 +76,8 @@ Pod
 Container
 ```
 Docker에서는 Container가 실행 단위였지만, Kubernetes에서는 Pod가 실행 단위이며, Deployment가 Pod를 관리한다.
----
 
-## 정리
+### 정리
 - Docker는 컨테이너를 실행한다.
 - Kubernetes는 Pod를 실행한다.
 - Pod는 컨테이너를 담는 실행 단위이다.
@@ -107,3 +105,92 @@ Pod
 - Pod IP는 변경될 수 있다.
 - Service는 Pod 앞단의 대표 진입점이다.
 - 사용자는 Service를 통해 애플리케이션에 접근한다.
+---
+
+## 7. Kubernetes YAML
+Kubernetes에서 Pod, Deployment, Service 같은 리소스를 YAML 파일로 정의할 수 있다.
+
+### Deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment  # Deployment를 만든다.
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 2   # Pod 2개 유지
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
+          ports:
+            - containerPort: 80
+```
+- `replicas: 2` : Pod 2개 유지
+  ```
+  Deployment
+   ↓
+  Pod 2개
+   ↓
+  nginx Container
+  ```
+
+### Service
+Service는 Pod 앞단의 대표 진입점 역할을 한다.
+```yaml
+apiVersion: v1
+kind: Service   # service 설정
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort
+  selector:
+    app: nginx  # app: nginx 라벨을 가진 Pod를 찾아 연결
+  ports:  # 외부 접근 포트 30080 -> Service 80 -> Pod 내부 80
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+```
+- Service는 selector를 통해 연결할 Pod를 찾는다.
+- 이 경우 app: nginx 라벨을 가진 Pod에 요청을 전달한다.
+```
+브라우저
+ ↓
+Service
+ ↓
+Pod
+ ↓
+Container
+```
+- Deployment는 Pod 개수를 유지하고, Service는 Pod로 요청을 전달한다.
+
+### 실행 명령어
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
+
+### 확인 명령어
+```bash
+kubectl get deployments
+kubectl get pods
+kubectl get services
+```
+
+### 삭제 명령어
+```
+kubectl delete -f service.yaml
+kubectl delete -f deployment.yaml
+```
+
+### 정리
+- Kubernetes 리소스는 YAML 파일로 정의할 수 있다.
+- Deployment는 Pod를 생성하고 개수를 유지한다.
+- Service는 Pod 앞단의 고정 진입점 역할을 한다.
+- selector와 label을 통해 Service가 Pod를 찾는다.
