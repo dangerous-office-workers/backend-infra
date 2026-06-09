@@ -194,3 +194,92 @@ kubectl delete -f deployment.yaml
 - Deployment는 Pod를 생성하고 개수를 유지한다.
 - Service는 Pod 앞단의 고정 진입점 역할을 한다.
 - selector와 label을 통해 Service가 Pod를 찾는다.
+---
+
+## 8. Kubernetes 상태 확인 명령어
+Kubernetes에서는 `kubectl get` 명령어로 리소스 상태를 확인할 수 있다.
+
+### Node 확인
+![img.png](img.png)
+```bash
+kubectl get nodes
+```
+```bash
+NAME             STATUS   ROLES           AGE    VERSION
+docker-desktop   Ready    control-plane   3d5h   v1.34.1
+```
+- STATUS가 Ready이면 로컬 Kubernetes 클러스터가 정상 동작 중이다.
+
+### Deployment 확인
+```bash
+kubectl get deployments
+```
+```bash
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   2/2     2            2           30s
+```
+- `READY 2/2` : 원하는 Pod 2개 중 2개가 정상 준비되었다.
+
+### Pod 확인
+```bash
+kubectl get pods
+```
+```bash
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-7ccccd94f7-9zdp8   1/1     Running   0          3m8s
+nginx-deployment-7ccccd94f7-p5dts   1/1     Running   0          3m8s
+```
+- `READY` : Pod 안의 컨테이너 준비 상태
+- `STATUS` : Pod 실행 상태
+- `RESTARTS` : 재시작 횟수 (RESTARTS가 계속 증가하면 애플리케이션이 반복적으로 죽고 다시 뜨는 상황일 수 있다.)
+
+### Service 확인
+```bash
+kubectl get services
+```
+```bash
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        3d6h
+nginx-service   NodePort    10.99.201.218   <none>        80:30080/TCP   6m15s
+```
+- `80:30080/TCP` : Service의 80번 포트가 외부 30080번포트와 연결됨
+
+### 전체 리소스 확인
+```bash
+kubectl get all
+```
+```bash
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/nginx-deployment-7ccccd94f7-9zdp8   1/1     Running   0          7m13s
+pod/nginx-deployment-7ccccd94f7-p5dts   1/1     Running   0          7m13s
+
+NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        3d6h
+service/nginx-service   NodePort    10.99.201.218   <none>        80:30080/TCP   6m56s
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-deployment   2/2     2            2           7m13s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-deployment-7ccccd94f7   2         2         2       7m13s
+```
+- Pod, Service, Deployment, ReplicaSet 등을 한 번에 확인할 수 있다.
+
+### 로그 확인
+```bash
+kubectl logs <pod-name>
+```
+- 실무에서는 애플리케이션 실행 오류, DB 연결 실패, 환경변수 문제 등을 확인할 때 사용한다.
+
+### 삭제
+```bash
+kubectl delete -f service.yaml
+kubectl delete -f deployment.yaml
+```
+
+### 정리
+- Kubernetes에서는 `kubectl get`으로 리소스 상태를 확인한다.
+- Deployment는 원하는 Pod 개수가 준비되었는지 확인한다.
+- Pod는 STATUS, READY, RESTARTS를 중요하게 본다.
+- Service는 Pod로 접근하기 위한 진입점과 포트 정보를 제공한다.
+- `kubectl logs`는 컨테이너 로그를 확인하는 데 사용한다.
