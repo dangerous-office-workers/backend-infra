@@ -200,7 +200,6 @@ kubectl delete -f deployment.yaml
 Kubernetes에서는 `kubectl get` 명령어로 리소스 상태를 확인할 수 있다.
 
 ### Node 확인
-![img.png](img.png)
 ```bash
 kubectl get nodes
 ```
@@ -283,3 +282,57 @@ kubectl delete -f deployment.yaml
 - Pod는 STATUS, READY, RESTARTS를 중요하게 본다.
 - Service는 Pod로 접근하기 위한 진입점과 포트 정보를 제공한다.
 - `kubectl logs`는 컨테이너 로그를 확인하는 데 사용한다.
+---
+
+## 9. kubectl describe
+- `kubectl describe`는 Kubernetes 리소스의 상세 정보를 확인하는 명령어이다.
+- Pod 상태를 한 줄로 확인할 때는 `kubectl get pods`를 사용하고, Pod의 상세 원인이나 이벤트를 확인할 때는 `kubectl describe pod`를 사용한다.
+
+### Pod 상세 확인
+```bash
+kubectl describe pod <pod-name>
+```
+
+### get / logs / describe 차이
+- `kubectl get pods` : Pod 상태 요약 확인
+- `kubectl logs <pod-name>` : 애플리케이션 로그 확인
+- `kubectl describe pod <pod-name>` : Pod 상세 정보와 Kubernetes 이벤트 확인
+
+### describe에서 볼 부분
+- `Status`
+  - Pod 현재 상태
+- `Containers`
+  - 컨테이너 이름, 이미지, 포트 정보
+- `Environment`
+  - 환경변수 설정 정보
+- `Events`
+  - Kubernetes가 기록한 이벤트
+
+### 자주 보는 상태
+- `Pending`
+  - Pod가 아직 실행될 준비가 되지 않은 상태
+  - 가능한 원인 : 리소스 부족, 노드 문제, 이미지 다운로드 대기
+- `ImagePullBackOff`
+  - 이미지를 가져오지 못한 상태
+  - 가능한 원인 : 이미지 이름 오타, 이미지 태그 없음, private registry 인증 실패
+- `CrashLoopBackOff`
+  - 컨테이너가 실행됐다가 계속 죽고 다시 시작되는 상태
+  - 가능한 원인 : 애플리케이션 실행 실패, 환경변수 누락, DB 연결 실패, 포트 설정 오류
+
+### 장애 확인 흐름
+```text
+1. kubectl get pods
+   → Pod 상태 요약 확인
+
+2. kubectl logs <pod-name>
+   → 애플리케이션 로그 확인
+
+3. kubectl describe pod <pod-name>
+   → Kubernetes 이벤트와 상세 설정 확인
+```
+
+### 정리
+- `kubectl get` 상태 요약을 확인
+- `kubectl logs` 애플리케이션 로그 확인
+- `kubectl describe` Kubernetes 리소스의 상세 정보와 이벤트 확인
+- 백엔드 애플리케이션 장애 확인 시 `get -> logs -> describe` 흐름이 중요
