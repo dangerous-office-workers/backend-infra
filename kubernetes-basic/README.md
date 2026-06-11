@@ -336,3 +336,61 @@ kubectl describe pod <pod-name>
 - `kubectl logs` 애플리케이션 로그 확인
 - `kubectl describe` Kubernetes 리소스의 상세 정보와 이벤트 확인
 - 백엔드 애플리케이션 장애 확인 시 `get -> logs -> describe` 흐름이 중요
+---
+
+## 10. ConfigMap과 Secret
+Kubernetes에서는 애플리케이션 설정값을 ConfigMap과 Secret으로 관리할 수 있다.
+Docker에서는 환경변수를 다음과 같이 직접 전달했다.
+```bash
+docker run -e APP_MODE=dev my-app
+```
+- Kubernetes에서는 ConfigMap이나 Secret에 값을 저장하고, Deployment를 통해 Pod 내부 컨테이너에 주입할 수 있다.
+```text
+ConfigMap / Secret
+ ↓
+Deployment
+ ↓
+Pod
+ ↓
+Container 환경변수
+ ↓
+Spring Boot / FastAPI
+```
+
+### ConfigMap
+```yaml
+APP_MODE=dev
+LOG_LEVEL=info
+REDIS_HOST=redis-service
+SPRING_PROFILES_ACTIVE=prod
+```
+- 노출되어도 큰 문제가 없는 설정값을 넣는다.
+
+### Secret
+민감한 설정값을 저장하는 Kubernetes 객체
+```yaml
+DB_PASSWORD
+JWT_SECRET
+API_KEY
+ACCESS_TOKEN
+```
+- 비밀번호, 토큰, 키 같은 값은 ConfigMap이 아니라 Secret으로 관리하는 것이 일반적이다.
+
+### Docker와 Kubernetes 비교
+- Docker
+  ```bash
+  docker run -e SPRING_PROFILES_ACTIVE=prod my-spring-app
+  ```
+- Kubernetes
+  - ConfigMap
+
+### 장애 확인 흐름
+```text
+kubectl get pods
+ ↓
+kubectl logs <pod-name>
+ ↓
+kubectl describe pod <pod-name>
+```
+- `describe`에서 환경변수와 이벤트를 확인할 수 있다.
+---
