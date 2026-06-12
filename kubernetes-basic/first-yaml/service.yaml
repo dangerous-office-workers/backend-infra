@@ -7,6 +7,6 @@ spec:
   selector:
     app: nginx  # app: nginx 라벨을 가진 Pod를 찾아 연결
   ports:  # 외부 접근 포트 30080 -> Service 80 -> Pod 내부 80
-    - port: 80
-      targetPort: 80
-      nodePort: 30080
+    - port: 80  # Service 자체의 포트
+      targetPort: 80  # Pod 안의 컨테이너가 실제로 듣고 있는 포트
+      nodePort: 30080 # 클러스터 바깥에서 접근할 때 사용하는 포트

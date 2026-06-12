@@ -394,3 +394,59 @@ kubectl describe pod <pod-name>
 ```
 - `describe`에서 환경변수와 이벤트를 확인할 수 있다.
 ---
+
+## 11. Kubernetes 포트 연결
+- Docker에서는 `-p` 옵션으로 호스트 포트와 컨테이너 포트를 연결했다.
+  ```bash
+  docker run -d -p 8080:80 nginx
+  ```
+  - `localhost:8080` -> `Container:80`
+- Kubernetes에서는 Service를 통해 Pod의 컨테이너 포트로 요청을 전달한다.
+  - 사용자 -> Service -> Pod -> Container
+
+### Service 포트 예시
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+```
+- `targetPort` : Pod 안의 컨테이너가 실제로 요청을 받는 포트
+- `port` : Service가 클러스터 내부에서 열어두는 포트. 다른 Pod가 이 Service를 호출할 때 사용할 수 있음
+- `nodePort` : 클러스터 외부에서 접근할 때 사용하는 포트. Docker Desktop 로컬 Kubernetes에서는 `http://localhost:30080`으로 접근
+
+### 전체 흐름
+```text
+브라우저 localhost:30080
+ ↓
+NodePort 30080
+ ↓
+Service port 80
+ ↓
+Pod targetPort 80
+ ↓
+nginx Container
+```
+- Docker
+  ```text
+  localhost:8080
+   ↓
+  Container:80
+  ```
+- Kubernetes
+  ```text
+  localhost:30080
+   ↓
+  Service:80
+   ↓
+  Pod/Container:80
+  ```
+---
