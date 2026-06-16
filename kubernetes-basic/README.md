@@ -184,7 +184,7 @@ kubectl get services
 ```
 
 ### 삭제 명령어
-```
+```bash
 kubectl delete -f service.yaml
 kubectl delete -f deployment.yaml
 ```
@@ -450,3 +450,59 @@ nginx Container
   Pod/Container:80
   ```
 ---
+
+## 12. Label과 Selector
+- Kubernetes에서는 Label과 Selector를 사용해 Service와 Pod를 연결한다.
+- Pod는 재생성될 때 이름과 IP가 변경될 수 있으므로, Service는 특정 Pod 이름이나 IP를 직접 기억하지 않는다.
+- 대신 Pod에 Label을 붙이고, Service는 Selector를 통해 해당 Label을 가진 Pod를 찾는다.
+
+### Pod Label
+Deployment의 Pod 템플릿에 다음과 같이 Label을 지정한다.
+```yaml
+template:
+  metadata:
+    labels:
+      app: nginx
+```
+이 설정으로 Deployment가 생성하는 Pod에는 `app: nginx` Label이 붙는다.
+
+#### 확인
+```bash
+kubectl get pods --show-labels  # Pod의 Label 확인
+kubectl get pods -l app=nginx   # 특정 Label을 가진 Pod만 조회
+```
+
+### Service Selector
+Service에서는 다음과 같이 Selector를 지정한다.
+```yaml
+selector:
+  app: nginx
+```
+이 설정으로 Service는 `app: nginx` Label을 가진 Pod를 찾는다.
+
+#### 연결 구조
+```text
+Service selector: app=nginx 
+    ↓ 
+Pod label: app=nginx 
+    ↓ 
+nginx Container
+```
+
+#### Service Endpoint 확인
+```bash
+kubectl get endpoints nginx-service
+```
+- 정상적으로 연결된 경우 Pod IP와 포트가 표시된다.
+- Endpoint에 Pod IP가 있다는 것은 Service가 Label이 일치하는 Pod를 정상적으로 찾았다는 의미
+
+### port-forward로 Service 연결 확인
+```bash
+kubectl port-forward service/nginx-service 8080:80
+```
+- 내 pc 8080 -> Kubernetes Service 80 -> Pod 80 -> nginx Container
+- `Ctrl+C`로 종료
+
+### Selector 불일치
+- Service Selector와 Pod Label이 일치하지 않을 경우, Service는 해당 Label을 가진 Pod를 찾지 못한다.
+- 이 경우 Pod는 `Running` 상태여도 Service를 통한 요청은 실패할 수 있다.
