@@ -18,4 +18,18 @@ spec:
           ports:
             - containerPort: 80
 
+          readinessProbe:   # nginx의 80 포트 '/' 경로에 HTTP 요청ㅇ르 보내 응답 가능한지 확인한다.
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3    # 컨테이너 시작 후 3초 기다렸다가 검사를 시작한다.
+            periodSeconds: 5  # 5초마다 검사한다.
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
 # nginx Pod 2개를 유지하는 Deployment 설정

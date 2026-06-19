@@ -506,3 +506,69 @@ kubectl port-forward service/nginx-service 8080:80
 ### Selector 불일치
 - Service Selector와 Pod Label이 일치하지 않을 경우, Service는 해당 Label을 가진 Pod를 찾지 못한다.
 - 이 경우 Pod는 `Running` 상태여도 Service를 통한 요청은 실패할 수 있다.
+---
+
+## 13. Readiness Probe와 Liveness Probe
+- Kubernetes에서는 Probe를 사용해 컨테이너의 상태를 주기적으로 확인할 수 있다.
+- Pod가 `Running` 상태라고 해서 애플리케이션이 사용자 요청을 정상적으로 처리할 준비가 된 것은 아니다.
+
+### Readiness Probe
+- Readiness Probe는 애플리케이션이 요청을 받을 준비가 되었는지 확인한다.
+- 검사에 실패하면 Pod는 계속 실행되지만 Service의 요청 대상에서 제외된다.
+```text
+Readiness 성공 → Service가 요청 전달
+Readiness 실패 → Service가 해당 Pod로 요청을 보내지 않음
+```
+
+### Liveness Probe
+- Liveness Probe는 애플리케이션이 정상적으로 살아 있는지 확인한다.
+- 설정된 횟수만큼 계속 실패하면 Kubernetes는 Pod를 재시작할 수 있다.
+```text
+Liveness 성공 → Pod 계속 실행
+Liveness 실패 → Pod 재시작
+```
+
+### 차이
+```text
+Readiness → 트래픽을 보내도 되는가?
+
+Liveness → 컨테이너를 재시작해야 하는가?
+```
+
+### nginx Probe 설정
+```yaml
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 3
+  periodSeconds: 5
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 10
+```
+- `httpGet` : 지정한 HTTP 경로로 상태를 확인한다.
+- `initialDelaySeconds` : 컨테이너 실행 후 검사를 시작하기 전 대기 시간
+- `periodSeconds` : Probe 검사 주기
+
+### Readiness 실패 실습
+Readiness Probe 경로를 존재하지 않는 경로로 변경
+```yaml
+readinessProbe:
+  httpGet:
+    path: /wrong-health
+    port: 80
+```
+- 확인
+```bash
+kubectl get pods
+kubectl get endpoints nginx-service
+kubectl describe pod <pod-name>
+```
+- 이때 Pod는 `Running` 상태지만 `READY`는 `0/1`이 될 수 있다.
+- Service Endpoint에서도 준비되지 않은 Pod가 제외된다.
+---
