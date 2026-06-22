@@ -18,6 +18,14 @@ spec:
           ports:
             - containerPort: 80
 
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
           readinessProbe:   # nginx의 80 포트 '/' 경로에 HTTP 요청ㅇ르 보내 응답 가능한지 확인한다.
             httpGet:
               path: /
