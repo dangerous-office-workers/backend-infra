@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:1.28-alpine  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
+          image: nginx:1.27-alpine  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
           ports:
             - containerPort: 80
 

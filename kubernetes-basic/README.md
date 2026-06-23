@@ -638,3 +638,119 @@ Pod 반복 재시작 → OOMKilled와 memory limit 확인
 
 API 응답 지연 → CPU limit 확인
 ```
+---
+
+## 15. Deployment 롤링 업데이트와 롤백
+
+Deployment의 Pod 템플릿이 변경되면 Kubernetes는 새로운 Pod를 생성하고 기존 Pod를 순차적으로 교체한다.
+
+이 방식을 Rolling Update라고 한다.
+
+### Rolling Update
+```text
+기존 Pod 실행
+    ↓
+새 버전 Pod 생성
+    ↓
+새 Pod 정상 여부 확인
+    ↓
+기존 Pod 종료
+    ↓
+순차적으로 교체
+```
+기존 Pod를 모두 한꺼번에 종료하지 않기 때문에 배포 중 서비스 중단 가능성을 줄일 수 있다.
+
+### 이미지 확인
+```bash
+# 현재 이미지 확인
+kubectl get deployment nginx-deployment -o jsonpath="{.spec.template.spec.containers[0].image}"
+
+# Pod별 이미지 확인
+kubectl get pods -o custom-columns="NAME:.metadata.name,IMAGE:.spec.containers[*].image"
+
+# 이미지 변경
+kubectl set image deployment/nginx-deployment nginx=nginx:1.28-alpine
+# kubectl set image <Deployment 이름> <컨테이너 이름=새 이미지>
+```
+
+### 롤아웃 상태 확인
+```bash
+kubectl rollout status deployment/nginx-deployment
+```
+
+Pod 교체 과정을 실시간으로 확인하려면 다음 명령어를 사용한다.
+```bash
+kubectl get pods -w
+```
+
+### 롤아웃 이력 확인
+```bash
+kubectl rollout history deployment/nginx-deployment
+
+# 특정 revision 확인
+kubectl rollout history deployment/nginx-deployment --revision=2
+```
+
+### 잘못된 이미지 배포 실습
+```bash
+# 존재하지 않는 이미지 태그 적용
+kubectl set image deployment/nginx-deployment nginx=nginx:not-exist-version
+
+# Pod 상태 확인
+kubectl get pods
+```
+
+새 Pod에서 `ErrImagePull`, `ImagePullBackOff` 상태를 확인할 수 있다.
+
+```bash
+# 상세 원인 확인
+kubectl describe pod <pod 이름>
+```
+
+`Events` 영역에서 이미지 다운로드 실패 원인을 확인할 수 있다.
+
+### 이전 버전으로 롤백
+```bash
+kubectl rollout undo deployment/nginx-deployment
+
+# 롤백 상태 확인
+kubectl rollout status deployment/nginx-deployment
+kubectl get pods
+```
+
+특정 revision으로 롤백하려면 다음과 같이 실행할 수 있다.
+
+```bash
+kubectl rollout undo deployment/nginx-deployment --to-revision=2
+```
+
+### 선언 파일과 실제 상태
+
+`kubectl set image`로 Deployment를 변경하면 실제 클러스터 상태는 바뀌지만, 로컬 `deployment.yaml`은 자동으로 수정되지 않는다.
+
+이 상태에서 다시 `kubectl apply -f deployment.yaml`을 실행하면 YAML에 적힌 이미지 버전이 적용된다.
+
+따라서 실무에서는 클러스터를 직접 변경한 경우 선언 파일에도 변경 내용을 반영해야 한다.
+
+
+### 장애 대응 흐름
+```text
+새 버전 배포
+    ↓
+롤아웃 상태 확인
+    ↓
+Pod 상태 확인
+    ↓
+describe와 logs로 원인 확인
+    ↓
+복구가 급하면 이전 revision으로 롤백
+```
+
+```bash
+kubectl rollout status deployment/nginx-deployment
+kubectl get nods
+kubectl describe pod <pod-name>
+kubectl logs <pod-name>
+kubectl rollout history deployment/nginx-deployment
+kubectl rollout undo deployment/nginx-deployment
+```
