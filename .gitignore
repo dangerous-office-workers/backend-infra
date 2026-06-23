@@ -6,3 +6,6 @@ env/
 target/
 build/
 .DS_Store
+
+# Editor backup files
+*~
