@@ -4,6 +4,13 @@ metadata:
   name: nginx-deployment
 spec:
   replicas: 2   # Pod 2개 유지
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # 업데이트 중 준비된 Pod 수가 기존 replica보다 줄어드는것을 허용 x
+      maxSurge: 1         # 대신 새 Pod를 하나 먼저 추가로 만들 수 있음
+
   selector:
     matchLabels:
       app: nginx
@@ -14,7 +21,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:1.28-alpine  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
+          image: nginx:1.27-alpine  # Pod 안에서 nginx 컨테이너를 실행하라는 뜻
           ports:
             - containerPort: 80
 
@@ -26,7 +33,7 @@ spec:
               cpu: "200m"
               memory: "128Mi"
 
-          readinessProbe:   # nginx의 80 포트 '/' 경로에 HTTP 요청ㅇ르 보내 응답 가능한지 확인한다.
+          readinessProbe:   # nginx의 80 포트 '/' 경로에 HTTP 요청을 보내 응답 가능한지 확인한다.
             httpGet:
               path: /
               port: 80

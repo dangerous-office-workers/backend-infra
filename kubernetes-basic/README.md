@@ -754,3 +754,118 @@ kubectl logs <pod-name>
 kubectl rollout history deployment/nginx-deployment
 kubectl rollout undo deployment/nginx-deployment
 ```
+---
+
+## 16. RollingUpdate 상세 설정
+
+Deployment의 RollingUpdate 전략은 `maxUnavailable`과 `maxSurge`를 사용해 Pod 교체 방식을 제어할 수 있다.
+
+### 설정 예시
+```yaml
+spec:
+  replicas: 2
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+```
+
+### maxUnavailable
+
+업데이트 중 사용할 수 없어도 되는 최대 Pod 수
+
+```yaml
+maxUnavailable: 0
+```
+
+이 설정은 기존에 준비된 Pod 수가 업데이트 과정에서 줄어드는 것을 허용하지 않는다.
+
+### maxSurge
+
+업데이트 중 기존 replica 수보다 추가로 생성할 수 있는 최대 Pod 수
+
+```yaml
+maxSurge: 1
+```
+
+replica가 2개라면 업데이트 중 일시적으로 총 3개의 Pod가 존재할 수 있다.
+
+### 업데이트 흐름
+```text
+기존 Pod 2개
+    ↓
+새 Pod 1개 추가 생성
+    ↓
+총 Pod 3개
+    ↓
+새 Pod Ready
+    ↓
+기존 Pod 1개 종료
+    ↓
+순차 교체
+    ↓
+새 버전 Pod 2개
+```
+
+### 설정 확인
+```bash
+kubectl describe deployment nginx-deployment
+```
+- 확인 항목: `StrategyType`, `RollingUpdateStrategy`, `max unavailable`, `max surge`
+
+### 롤링 업데이트 관찰
+```bash
+kubectl get pods -w
+```
+
+다른 터미널에서 이미지 버전을 변경한다.
+
+```bash
+kubectl set image deployment/nginx-deployment nginx=nginx:1.27-alpine
+```
+
+롤아웃 상태 확인
+
+```bash
+kubectl rollout status deployment/nginx-deployment
+```
+
+### ReplicaSet 확인
+
+```bash
+kubectl get rs
+```
+
+Deployment는 롤링 업데이트 시 새로운 ReplicaSet을 생성하고, 이전 ReplicaSet의 Pod 수를 줄이면서 새 ReplicaSet의 Pod 수를 늘린다.
+
+```text
+Deployment
+ ├─ 이전 ReplicaSet
+ │    └─ 이전 버전 Pod
+ └─ 새 ReplicaSet
+      └─ 새 버전 Pod
+```
+
+### 설정 비교
+```yaml
+maxUnavailable: 0
+maxSurge: 1
+```
+- 기존 가용 Pod 수 유지
+- 새 Pod 먼저 추가
+- 임시 추가 자원 필요
+
+```yaml
+maxUnavailable: 1
+maxSurge: 0
+```
+- 기존 Pod를 먼저 줄일 수 있음
+- 추가 Pod를 만들지 않음
+- 업데이트 중 가용 Pod 감소 가능
+
+### Readiness Probe와의 관계
+새 Pod가 생성됐다고 바로 트래픽을 받을 수 있는 것은 아니다.
+
+Readiness Probe가 성공해 새 Pod가 Ready 상태가 된 뒤에야 안전하게 기존 Pod를 교체할 수 있다.
