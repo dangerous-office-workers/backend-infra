@@ -869,3 +869,80 @@ maxSurge: 0
 새 Pod가 생성됐다고 바로 트래픽을 받을 수 있는 것은 아니다.
 
 Readiness Probe가 성공해 새 Pod가 Ready 상태가 된 뒤에야 안전하게 기존 Pod를 교체할 수 있다.
+
+---
+
+## 17. Kubernetes Service 타입
+
+Kubernetes Service는 Pod 집합을 네트워크에 노출하는 역할을 한다.
+
+Pod는 재생성될 때 IP가 변경될 수 있지만, Service를 사용하면 클라이언트는 일정한 주소로 Pod에 접근할 수 있다.
+
+### ClusterIP
+
+ClusterIP는 Kubernetes 클러스터 내부에서만 접근할 수 있는 Service 타입이다.
+
+`type`을 생략하면 기본적으로 ClusterIP가 사용된다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+```
+- 클러스터 내부 Pod → nginx-service:80 → nginx Pod:80
+
+### NodePort
+
+NodePort는 각 Node의 특정 포트를 통해 Service를 외부에 공개한다.
+
+```yaml
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+```
+- Node IP:30080 → Service:80 → Pod:80
+
+### LoadBalancer
+- LoadBalancer는 클라우드 제공자의 외부 로드밸런서를 사용해 Service를 공개한다.
+- 인터넷 → Cloud Load Balancer → Kubernetes Service → Pod
+- 실제 외부 로드밸런서 생성은 클라우드 환경의 지원 필요
+
+### Ingress
+- Ingress는 Service 타입이 아니라 별도의 Kubernetes 리소스이다.
+- HTTP 요청의 도메인이나 경로에 따라 여러 Service로 요청을 전달할 수 있다.
+- `/api/users` → `user-service`  `/api/orders` → `order-service`
+- Ingress가 실제로 동작하려면 Ingress Controller가 필요하다.
+
+### Service 타입 비교
+- ClusterIP: 클러스터 내부에서만 접근 가능
+- NodePort: Node IP를 통해 접근 가능
+- LoadBalancer: 외부 로드밸런서를 통해 접근 가능
+- Ingress: HTTP 요청의 도메인이나 경로에 따라 여러 Service로 요청을 전달할 수 있다.
+
+### ClusterIP 변경 실습
+- 기존 NodePort Service에서 `type`을 `ClusterIP`로 변경, `nodePort` 항목 삭제
+- 적용 : `kubectl apply -f service.yaml`
+- 확인 : `kubectl get services` `kubectl get endpoints nginx-service`
+
+### port-forward
+- ClusterIP Service는 외부 브라우저에서 직접 접근할 수 없으므로 개발 및 점검 목적으로 port-forward를 사용할 수 있다.
+- 적용 : `kubectl port-forward service/nginx-service 8080:80`
+- 내 PC:8080 → port-forward → Service:80 → Pod:80
+- port-forward는 명령어가 실행되는 동안만 유지되는 임시 연결이다.
+
+### 내부 접근
+- Kubernetes 내부에서는 Service 이름을 사용해 접근할 수 있다.
+- `kubectl run curl-test --image=curlimages/curl --rm -it -- sh`
+- 임시 Pod 내부에서 확인 : `curl http://nginx-service`
+- Kubernetes 내부 DNS가 `nginx-service`라는 이름ㅇ르 Service 주소로 해석한다.
