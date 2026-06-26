@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment  # Deployment를 만든다.
 metadata:
   name: nginx-deployment
+  namespace: study
 spec:
   replicas: 2   # Pod 2개 유지
 

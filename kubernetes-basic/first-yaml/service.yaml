@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service   # service 설정
 metadata:
   name: nginx-service
+  namespace: study
 spec:
   type: ClusterIP
   selector:
