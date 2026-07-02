@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volume-demo
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: volume-demo
+
+  template:
+    metadata:
+      labels:
+        app: volume-demo
+    
+    spec:
+      containers:
+        - name: writer
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - while true; do date > /data/time.txt; sleep 5; done
+          volumeMounts:  # shared-data Volume을 컨테이너 내부의 /data 경로에 연결한다.
+            - name: shared-data
+              mountPath: /data
+
+        - name: reader
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - while true; do cat /data/time.txt 2>/dev/null; sleep 5; done
+          volumeMounts:
+            - name: shared-data
+              mountPath: /data
+
+      volumes:  # pod 안에 shared-data 라는 이름의 emptyDir Volume을 만든다.
+        - name: shared-data
+          emptyDir: {}
